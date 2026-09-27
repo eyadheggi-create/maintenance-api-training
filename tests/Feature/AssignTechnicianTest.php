@@ -38,4 +38,25 @@ class AssignTechnicianTest extends TestCase
             ->assertUnprocessable()
             ->assertJsonValidationErrors('technician_id');
     }
+public function test_closed_request_cannot_be_assigned(): void
+{
+    $request = MaintenanceRequest::factory()->create([
+        'status' => 'done',
+    ]);
+
+    $tech = User::factory()->technician()->create();
+
+    $this->actingAs(User::factory()->dispatcher()->create())
+        ->postJson(
+            "/api/v1/requests/{$request->id}/assign",
+            ['technician_id' => $tech->id]
+        )
+        ->assertUnprocessable();
+
+    $this->assertDatabaseMissing('maintenance_requests', [
+        'id' => $request->id,
+        'technician_id' => $tech->id,
+        'status' => 'assigned',
+    ]);
+}
 }

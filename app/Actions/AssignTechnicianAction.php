@@ -15,6 +15,11 @@ class AssignTechnicianAction
                 'technician_id' => 'The selected user is not a technician.',
             ]);
         }
+        if (in_array($request->status, ['done', 'cancelled'])) {
+    throw ValidationException::withMessages([
+        'request' => 'A closed request cannot be assigned.',
+    ]);
+}
 
         $busy = MaintenanceRequest::query()
             ->where('technician_id', $technician->id)
